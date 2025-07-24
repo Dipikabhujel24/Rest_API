@@ -47,8 +47,8 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES':(
         'rest_framework_simplejwt.authentication.JWTAuthentication', 
     ),
-    'DEFAULT_PERMISSION_CLASSES':(
-        'rest_framework.premission.IsAuthentication',
+    'DEFAULT_PERMISSIONS_CLASSES':(
+        'rest_framework.premissions.IsAuthentication',
     ),
 }
 

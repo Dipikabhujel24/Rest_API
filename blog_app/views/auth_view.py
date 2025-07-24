@@ -1,10 +1,10 @@
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework_simplejwt.tokens import RefreshToken
-#from rest_framework import permissions
-#from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from django.contrib.auth.models import User
 from rest_framework.response import Response
 from rest_framework import status
+from django.contrib.auth import authenticate
 
 
 #Function to generate token
@@ -16,7 +16,7 @@ def get_token_for_user(user):
     }
 
 @api_view(['POST'])
-#@permissions([IsAuthenticated])
+@permission_classes([AllowAny])
 def register_user(request):
     username = request.data.get('username')
     password = request.data.get('password')
@@ -34,4 +34,25 @@ def register_user(request):
     except:
         return Response({'err':"Failed To Register"},status=status.HTTP_400_BAD_REQUEST)
 
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def login_user(request):
+    username = request.data.get('username')
+    password = request.data.get('password')
 
+    if not username:
+       return Response({'err':'Username is required.'},status=status.HTTP_400_BAD_REQUEST)
+    elif not User.objects.filter(username=username).exists():
+        return Response({'err':'Invalid username.'},status=status.HTTP_400_BAD_REQUEST)
+    
+    if not password:
+       return Response({'err':'Password is required.'},status=status.HTTP_400_BAD_REQUEST)
+
+    user = authenticate(username=username, password=password)
+    if user is not None:
+        tokens = get_token_for_user(user)
+        return Response({
+            'msg':'User Login Successful.',
+            'tokens': tokens},status=status.HTTP_200_OK)
+    else:
+        return Response({'err':'Incorrect Password'},status=status.HTTP_204_NO_CONTENT)
