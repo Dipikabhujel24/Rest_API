@@ -2,7 +2,7 @@ from rest_framework.decorators import api_view, permission_classes
 from ..serializers import BlogSerializer, CategorySerializer, productSerializer
 from rest_framework.response import Response
 from rest_framework import status
-from ..models import Blog
+from ..models import Blog, product, category
 
 
 # @api_view(['POST', 'GET'])
@@ -90,7 +90,7 @@ class BlogView(APIView):
 
 @api_view(['POST', 'GET'])
 @permission_classes([IsAuthenticated])
-def product_view(request):
+def category_view(request):
     if request.method == 'POST':
         serializer = CategorySerializer(data=request.data)
         if serializer.is_valid():
@@ -100,13 +100,13 @@ def product_view(request):
             return Response({'msg': 'Failed To Add', 'err':serializer.errors},status=status.HTTP_404_NOT_FOUND)
         
     if request.method == 'GET':
-        category = category.objects.all()
-        serializer = CategorySerializer(category, many=True)
+        Category = category.objects.all()
+        serializer = CategorySerializer(Category, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
     
 @api_view(['PUT', 'DELETE'])
 @permission_classes([IsAuthenticated])
-def category_view(request): 
+def category_view_detail(request): 
     try:
         category = category.objects.get(id=id)
     except category.DoesNotExist:
@@ -123,3 +123,41 @@ def category_view(request):
     elif request.method == 'DELETE':
         category.delete()
         return Response({'msg': 'Category deleted successfully'}, status=status.HTTP_204_NO_CONTENT)
+    
+@api_view(['GET', 'POST'])
+@permission_classes([IsAuthenticated])
+def product_view(request):
+    if request.method == 'POST':
+     serializer = productSerializer(data=request.data)
+     if serializer.is_valid():
+         serializer.save()
+         return Response({'msg':'Product added successfully', 'product':serializer.data},status=status.HTTP_200_OK)
+     else:
+         return Response({'msg':'Failed to add','err':serializer._errors},status=status.HTTP_404_NOT_FOUND)
+    elif request.method == 'GET':
+       try:
+        product1 = product.objects.all()
+        serializer = productSerializer(product1, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+       except Exception as e:
+           return Response({'msg':'failed to fetch','errors':e})
+
+@api_view(['PUT', 'DELETE'])
+@permission_classes([IsAuthenticated])
+def product_view_detail(request, id):
+    try:
+        prod = product.objects.get(id=id)
+    except product.DoesNotExist:
+        return Response({'msg': 'Product not found'}, status=status.HTTP_404_NOT_FOUND)
+
+    if request.method == 'PUT':
+        serializer = productSerializer(prod, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({'msg': 'Product updated successfully', 'updated_data': serializer.data}, status=status.HTTP_200_OK)
+        else:
+            return Response({'msg': 'Failed to update product', 'errors': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+
+    elif request.method == 'DELETE':
+        prod.delete()
+        return Response({'msg': 'Product deleted successfully'}, status=status.HTTP_204_NO_CONTENT)

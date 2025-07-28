@@ -15,10 +15,11 @@ class UserSerializer(serializers.ModelSerializer):
 class CategorySerializer (serializers.ModelSerializer):
     class Meta:
         model = category
-        fields = "_all_"
+        fields = "__all__"
 
 class productSerializer(serializers.ModelSerializer):
+    category_title = serializers.CharField(source='category.title',read_only=True)
     class Meta:
         model = product
-        fields = ['id', 'title', 'description', 'category', 'user', 'created_at']
+        fields = "__all__"
         read_only_fileds = ['id', 'user', 'created_at']
