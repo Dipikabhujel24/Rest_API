@@ -1,5 +1,5 @@
-from rest_framework.decorators import api_view
-from ..serializers import BlogSerializer
+from rest_framework.decorators import api_view, permission_classes
+from ..serializers import BlogSerializer, CategorySerializer, productSerializer
 from rest_framework.response import Response
 from rest_framework import status
 from ..models import Blog
@@ -86,3 +86,40 @@ class BlogView(APIView):
             blog = Blog.objects.get(id=id)
             serializer=BlogSerializer(blog)
             return Response({'data':serializer.data},status=status.HTTP_200_OK)
+    
+
+@api_view(['POST', 'GET'])
+@permission_classes([IsAuthenticated])
+def product_view(request):
+    if request.method == 'POST':
+        serializer = CategorySerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({'msg':'Category added Suucessfully'},status=status.HTTP_201_CREATED)
+        else:
+            return Response({'msg': 'Failed To Add', 'err':serializer.errors},status=status.HTTP_404_NOT_FOUND)
+        
+    if request.method == 'GET':
+        category = category.objects.all()
+        serializer = CategorySerializer(category, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+@api_view(['PUT', 'DELETE'])
+@permission_classes([IsAuthenticated])
+def category_view(request): 
+    try:
+        category = category.objects.get(id=id)
+    except category.DoesNotExist:
+        return Response({'msg': 'Category not found'}, status=status.HTTP_404_NOT_FOUND)
+
+    if request.method == 'PUT':
+        serializer = CategorySerializer(category, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({'msg': 'Category updated successfully', 'updated_data': serializer.data}, status=status.HTTP_200_OK)
+        else:
+            return Response({'msg': 'Failed to update category', 'errors': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+
+    elif request.method == 'DELETE':
+        category.delete()
+        return Response({'msg': 'Category deleted successfully'}, status=status.HTTP_204_NO_CONTENT)
